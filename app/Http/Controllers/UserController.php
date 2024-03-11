@@ -11,7 +11,7 @@ class UserController extends Controller
 {
     public function showRegisterForm()
     {
-        return view('layouts.register');
+        return view('auth.register');
     }
 
     public function register(Request $request)
@@ -19,10 +19,10 @@ class UserController extends Controller
         $request->validate([
             'credential_for' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'url' => 'required|url',
-            'ip_address' => 'ip',
+            'url' => 'required|url|max:255',
+            'ip_address' => 'nullable|ip',
             'username' => 'required|string|max:255',
-            'password' => 'required|string|min:8|confirmed:confirm_password'
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
@@ -35,14 +35,14 @@ class UserController extends Controller
         ]);
 
         Auth::login($user);
-        return redirect()->route('home');
+
+        return redirect()->route('login')->with('success', 'Registration successful! Welcome to our site.');
     }
 
     public function showLoginForm()
     {
-        return view('layouts.login');
+        return view('auth.login');
     }
-
 
     public function login(Request $request)
     {
@@ -51,10 +51,10 @@ class UserController extends Controller
             'password' => 'required',
         ]);
 
-        if(Auth::attempt($credentials)){
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('home');
+            return redirect()->intended('index');
         }
 
         return back()->withErrors([
@@ -69,6 +69,6 @@ class UserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 }
